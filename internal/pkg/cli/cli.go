@@ -14,10 +14,10 @@ func PrintCustomUsage() {
 	fmt.Fprintf(os.Stderr, "high-friction areas and mitigate risks during system migrations.\n\n")
 
 	fmt.Fprintf(os.Stderr, "USAGE:\n")
-	fmt.Fprintf(os.Stderr, "  hummingbird [flags] <tables_file> <codebase_path>\n\n")
+	fmt.Fprintf(os.Stderr, "  hummingbird [flags] [tables_file] <codebase_path>\n\n")
 
 	fmt.Fprintf(os.Stderr, "ARGUMENTS:\n")
-	fmt.Fprintf(os.Stderr, "  <tables_file>    Path to a .txt file containing target table names (one per line)\n")
+	fmt.Fprintf(os.Stderr, "  [tables_file]    (Optional) Path to a .txt file containing target table names (one per line)\n")
 	fmt.Fprintf(os.Stderr, "  <codebase_path>  Directory containing the source code to audit (.go, .js, .ts, etc.)\n\n")
 
 	fmt.Fprintf(os.Stderr, "FLAGS:\n")
@@ -47,7 +47,7 @@ func ParseConfig() *models.Config {
 	flag.Parse()
 
 	c.Args = flag.Args()
-	if len(c.Args) < 2 {
+	if len(c.Args) < 1 || len(c.Args) > 2 {
 		flag.Usage()
 		os.Exit(1)
 	}

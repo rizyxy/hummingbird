@@ -19,21 +19,32 @@ func main() {
 	fmt.Println("🚀 Hummingbird: Commencing Audit...")
 
 	// --- 1. Discovery Phase ---
-	funcs, err := scanner.ScanFunctions(cfg.Args[1])
+	var tablesFile, codebasePath string
+	if len(cfg.Args) == 1 {
+		codebasePath = cfg.Args[0]
+	} else {
+		tablesFile = cfg.Args[0]
+		codebasePath = cfg.Args[1]
+	}
+
+	funcs, err := scanner.ScanFunctions(codebasePath)
 	if err != nil {
 		fmt.Printf("❌ Error scanning functions: %v\n", err)
 		return
 	}
 
-	tables, err := scanner.ScanTables(cfg.Args[0])
-	if err != nil {
-		fmt.Printf("❌ Error loading tables: %v\n", err)
-		return
+	var tables []string
+	if tablesFile != "" {
+		tables, err = scanner.ScanTables(tablesFile)
+		if err != nil {
+			fmt.Printf("❌ Error loading tables: %v\n", err)
+			return
+		}
 	}
 
 	// --- 2. Scan Phase ---
 	var matches []models.Match
-	err = filepath.WalkDir(cfg.Args[1], func(path string, d os.DirEntry, err error) error {
+	err = filepath.WalkDir(codebasePath, func(path string, d os.DirEntry, err error) error {
 		if err != nil || d.IsDir() {
 			return err
 		}
