@@ -23,6 +23,10 @@ func PrintCustomUsage() {
 	fmt.Fprintf(os.Stderr, "FLAGS:\n")
 	flag.PrintDefaults()
 
+	fmt.Fprintf(os.Stderr, "\nDATABASE FLAGS:\n")
+	fmt.Fprintf(os.Stderr, "  --db-driver      Database driver (postgres, mysql)\n")
+	fmt.Fprintf(os.Stderr, "  --db-dsn         Database connection string (DSN)\n")
+
 	fmt.Fprintf(os.Stderr, "\nEXAMPLES:\n")
 	fmt.Fprintf(os.Stderr, "  # Standard audit with CLI output\n")
 	fmt.Fprintf(os.Stderr, "  hummingbird --cli tables.txt ./src\n\n")
@@ -42,6 +46,8 @@ func ParseConfig() *models.Config {
 	flag.BoolVar(&c.Graph, "graph", false, "Generate separated Mermaid JS files")
 	flag.StringVar(&c.Target, "target", "", "Calculate the recursive 'Blast Radius' for a table")
 	flag.StringVar(&c.GraphDir, "out", "diagrams", "Directory to save generated Mermaid files")
+	flag.StringVar(&c.DBDriver, "db-driver", "", "Database driver to connect to (postgres, mysql)")
+	flag.StringVar(&c.DBDsn, "db-dsn", "", "Database connection string to fetch tables dynamically")
 
 	flag.Usage = PrintCustomUsage
 	flag.Parse()

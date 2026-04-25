@@ -5,6 +5,7 @@ import (
 	"hummingbird/internal/models"
 	"hummingbird/internal/pkg/analyzer"
 	"hummingbird/internal/pkg/cli"
+	"hummingbird/internal/pkg/db"
 	"hummingbird/internal/pkg/report"
 	"hummingbird/internal/pkg/scanner"
 	"os"
@@ -35,11 +36,23 @@ func main() {
 
 	var tables []string
 	if tablesFile != "" {
-		tables, err = scanner.ScanTables(tablesFile)
+		fileTables, err := scanner.ScanTables(tablesFile)
 		if err != nil {
 			fmt.Printf("❌ Error loading tables: %v\n", err)
 			return
 		}
+		tables = append(tables, fileTables...)
+	}
+
+	if cfg.DBDriver != "" && cfg.DBDsn != "" {
+		fmt.Printf("🔍 Fetching tables from %s database...\n", cfg.DBDriver)
+		dbTables, err := db.FetchTables(cfg.DBDriver, cfg.DBDsn)
+		if err != nil {
+			fmt.Printf("❌ Error fetching tables from db: %v\n", err)
+			return
+		}
+		tables = append(tables, dbTables...)
+		fmt.Printf("✅ Found %d tables in database\n", len(dbTables))
 	}
 
 	// --- 2. Scan Phase ---
@@ -65,7 +78,7 @@ func main() {
 	}
 
 	if cfg.Graph {
-		withData := tablesFile != ""
+		withData := len(tables) > 0
 		report.ExportToMermaid(cfg.GraphDir, matches, withData)
 		if withData {
 			fmt.Println("🎨 Graphs generated: architecture_logic.mmd, architecture_data.mmd")

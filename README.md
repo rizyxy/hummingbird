@@ -7,6 +7,7 @@ By scanning your source code and a provided list of target tables, Hummingbird h
 ## 🚀 Features
 
 - **Dependency Discovery:** Scans codebases (`.go`, `.js`, `.ts`, etc.) to trace logic and database usage.
+- **Dynamic DB Integration:** Connects directly to PostgreSQL or MySQL to fetch table names dynamically.
 - **Blast Radius Calculation:** Calculates the recursive impact of modifying a specific table.
 - **Visual Architecture Graphs:** Generates Mermaid.js diagrams to visualize logic calls and data flow.
 - **Strategic Summaries:** Provides prioritized CLI reports detailing the frequency of table usage and logic dependencies.
@@ -50,6 +51,8 @@ hummingbird [flags] [tables_file] <codebase_path>
 | `--graph`               | Generate separated Mermaid JS files for visualization.                     | `false`    |
 | `--target <table_name>` | Calculate the recursive "Blast Radius" for a specific table.               | `""`       |
 | `--out <dir>`           | Directory to save generated Mermaid files.                                 | `diagrams` |
+| `--db-driver`           | Database driver to connect to (`postgres`, `mysql`).                       | `""`       |
+| `--db-dsn`              | Database connection string (DSN) to fetch tables dynamically.              | `""`       |
 
 ## 💡 Examples
 
@@ -85,6 +88,14 @@ You can also run Hummingbird without a tables file to just map internal function
 
 ```bash
 hummingbird --cli ./src
+```
+
+### 5. Dynamic Database Table Fetching
+
+Fetch table names directly from a live database instead of using a local file:
+
+```bash
+hummingbird --cli --db-driver postgres --db-dsn "postgres://user:pass@localhost:5432/mydb?sslmode=disable" ./src
 ```
 
 ## 📝 Example `tables.txt`

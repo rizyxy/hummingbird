@@ -28,5 +28,7 @@ type Config struct {
 	Graph    bool
 	Target   string
 	GraphDir string
+	DBDriver string
+	DBDsn    string
 	Args     []string
 }
