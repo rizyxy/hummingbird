@@ -56,7 +56,7 @@ func ScanFileContent(path string, tables []string, functions []string) []models.
 	cleanLines := strings.Split(cleanContent, "\n")
 
 	matches := make([]models.Match, 0)
-	currentFunc := "Global Scope"
+	currentFunc := "GlobalScope"
 
 	for i, cleanLine := range cleanLines {
 		if strings.TrimSpace(cleanLine) == "" {
