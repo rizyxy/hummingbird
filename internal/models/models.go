@@ -2,7 +2,7 @@ package models
 
 type Match struct {
 	Name         string `json:"name"`
-	Category     string `json:"category"` // "table" or "function"
+	Category     string `json:"category"`
 	FileName     string `json:"file_name"`
 	FunctionName string `json:"function_name"`
 	LineNumber   int    `json:"line_number"`
@@ -18,7 +18,14 @@ type Summary struct {
 
 type ImpactReport struct {
 	TargetTable    string   `json:"target_table"`
-	DirectImpact   []string `json:"direct_impact_functions"`   // Functions touching the table
-	IndirectImpact []string `json:"indirect_impact_functions"` // Functions calling those functions
+	DirectImpact   []string `json:"direct_impact_functions"`
+	IndirectImpact []string `json:"indirect_impact_functions"`
 	TotalRiskScore int      `json:"total_risk_score"`
+}
+
+type Config struct {
+	CLI    bool
+	Graph  bool
+	Target string
+	Args   []string
 }
