@@ -24,8 +24,9 @@ type ImpactReport struct {
 }
 
 type Config struct {
-	CLI    bool
-	Graph  bool
-	Target string
-	Args   []string
+	CLI      bool
+	Graph    bool
+	Target   string
+	GraphDir string
+	Args     []string
 }

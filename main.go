@@ -54,7 +54,7 @@ func main() {
 	}
 
 	if cfg.Graph {
-		report.ExportToMermaid(matches)
+		report.ExportToMermaid(cfg.GraphDir, matches)
 		fmt.Println("🎨 Graphs generated: architecture_logic.mmd, architecture_data.mmd")
 	}
 
