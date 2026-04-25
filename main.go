@@ -1,80 +1,63 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"hummingbird/internal/models"
-	"hummingbird/pkg/parser"
-	"hummingbird/pkg/report"
-	"hummingbird/pkg/scanner"
+	"hummingbird/internal/pkg/analyzer"
+	"hummingbird/internal/pkg/cli"
+	"hummingbird/internal/pkg/db"
+	"hummingbird/internal/pkg/report"
+	"hummingbird/internal/pkg/scanner"
 	"os"
 	"path/filepath"
 	"time"
 )
 
 func main() {
-	// 1. Flag Definitions
-	cli := flag.Bool("cli", false, "Print prioritized Strategic Summary and Logic Call tables to terminal")
-	graph := flag.Bool("graph", false, "Generate separated Mermaid JS files (architecture_logic.mmd, architecture_data.mmd)")
-	target := flag.String("target", "", "Calculate the recursive 'Blast Radius' (direct/indirect impact) for a table")
-
-	// 2. Comprehensive Help Override
-	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "\n🐦 HUMMINGBIRD | Migration Intelligence Engine\n")
-		fmt.Fprintf(os.Stderr, "--------------------------------------------------\n")
-		fmt.Fprintf(os.Stderr, "Hummingbird maps database dependencies and logic paths to identify\n")
-		fmt.Fprintf(os.Stderr, "high-friction areas and mitigate risks during system migrations.\n\n")
-
-		fmt.Fprintf(os.Stderr, "USAGE:\n")
-		fmt.Fprintf(os.Stderr, "  hummingbird [flags] <tables_file> <codebase_path>\n\n")
-
-		fmt.Fprintf(os.Stderr, "ARGUMENTS:\n")
-		fmt.Fprintf(os.Stderr, "  <tables_file>    Path to a .txt file containing target table names (one per line)\n")
-		fmt.Fprintf(os.Stderr, "  <codebase_path>  Directory containing the source code to audit (.go, .js, .ts, etc.)\n\n")
-
-		fmt.Fprintf(os.Stderr, "FLAGS:\n")
-		flag.PrintDefaults()
-
-		fmt.Fprintf(os.Stderr, "\nEXAMPLES:\n")
-		fmt.Fprintf(os.Stderr, "  # Standard audit with CLI output\n")
-		fmt.Fprintf(os.Stderr, "  hummingbird --cli tables.txt ./src\n\n")
-
-		fmt.Fprintf(os.Stderr, "  # Generate visualization graphs for architect review\n")
-		fmt.Fprintf(os.Stderr, "  hummingbird --graph tables.txt ./src\n\n")
-
-		fmt.Fprintf(os.Stderr, "  # Calculate risk impact for a specific critical table\n")
-		fmt.Fprintf(os.Stderr, "  hummingbird --target TBL_USER_AUTH tables.txt ./src\n")
-		fmt.Fprintf(os.Stderr, "--------------------------------------------------\n\n")
-	}
-
-	flag.Parse()
-	args := flag.Args()
-
-	// 3. Validation Logic
-	if len(args) < 2 {
-		flag.Usage()
-		return
-	}
+	cfg := cli.ParseConfig()
 
 	start := time.Now()
 	fmt.Println("🚀 Hummingbird: Commencing Audit...")
 
 	// --- 1. Discovery Phase ---
-	funcs, err := scanner.SurveyFunctions(args[1])
+	var tablesFile, codebasePath string
+	if len(cfg.Args) == 1 {
+		codebasePath = cfg.Args[0]
+	} else {
+		tablesFile = cfg.Args[0]
+		codebasePath = cfg.Args[1]
+	}
+
+	funcs, err := scanner.ScanFunctions(codebasePath)
 	if err != nil {
-		fmt.Printf("❌ Error surveying functions: %v\n", err)
+		fmt.Printf("❌ Error scanning functions: %v\n", err)
 		return
 	}
 
-	tables, err := parser.LoadTables(args[0])
-	if err != nil {
-		fmt.Printf("❌ Error loading tables: %v\n", err)
-		return
+	var tables []string
+	if tablesFile != "" {
+		fileTables, err := scanner.ScanTables(tablesFile)
+		if err != nil {
+			fmt.Printf("❌ Error loading tables: %v\n", err)
+			return
+		}
+		tables = append(tables, fileTables...)
+	}
+
+	if cfg.DBDriver != "" && cfg.DBDsn != "" {
+		fmt.Printf("🔍 Fetching tables from %s database...\n", cfg.DBDriver)
+		dbTables, err := db.FetchTables(cfg.DBDriver, cfg.DBDsn)
+		if err != nil {
+			fmt.Printf("❌ Error fetching tables from db: %v\n", err)
+			return
+		}
+		tables = append(tables, dbTables...)
+		fmt.Printf("✅ Found %d tables in database\n", len(dbTables))
 	}
 
 	// --- 2. Scan Phase ---
 	var matches []models.Match
-	err = filepath.WalkDir(args[1], func(path string, d os.DirEntry, err error) error {
+	err = filepath.WalkDir(codebasePath, func(path string, d os.DirEntry, err error) error {
 		if err != nil || d.IsDir() {
 			return err
 		}
@@ -87,25 +70,25 @@ func main() {
 		return
 	}
 
-	// --- 3. Reporting Phase ---
-	tSum, fSum := report.GenerateSummaries(matches)
+	// --- 3. Analyze & Report Phase ---
+	tSum, fSum := analyzer.GenerateSummaries(funcs, tables, matches)
 
-	if *cli {
+	if cfg.CLI {
 		report.PrintCLIReport(tSum, fSum)
 	}
 
-	if *graph {
-		// Ensure your report package has this function name updated
-		report.ExportToMermaid(matches)
-		fmt.Println("🎨 Graphs generated: architecture_logic.mmd, architecture_data.mmd")
+	if cfg.Graph {
+		withData := len(tables) > 0
+		report.ExportToMermaid(cfg.GraphDir, matches, withData)
+		if withData {
+			fmt.Println("🎨 Graphs generated: architecture_logic.mmd, architecture_data.mmd")
+		} else {
+			fmt.Println("🎨 Graphs generated: architecture_logic.mmd")
+		}
 	}
 
-	if *target != "" {
-		radius := report.CalculateBlastRadius(*target, matches)
-		fmt.Printf("\n☢️  BLAST RADIUS: %s\n", *target)
-		fmt.Printf("   Directly Impacted:   %d functions\n", len(radius.DirectImpact))
-		fmt.Printf("   Indirectly Impacted: %d functions (callers of callers)\n", len(radius.IndirectImpact))
-		fmt.Printf("   Total Risk Score:    %d\n", radius.TotalRiskScore)
+	if cfg.Target != "" {
+		analyzer.PrintBlastRadius(cfg.Target, matches)
 	}
 
 	fmt.Printf("\n✨ Audit complete in %v\n", time.Since(start))
