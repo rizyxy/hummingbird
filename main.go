@@ -65,8 +65,13 @@ func main() {
 	}
 
 	if cfg.Graph {
-		report.ExportToMermaid(cfg.GraphDir, matches)
-		fmt.Println("🎨 Graphs generated: architecture_logic.mmd, architecture_data.mmd")
+		withData := tablesFile != ""
+		report.ExportToMermaid(cfg.GraphDir, matches, withData)
+		if withData {
+			fmt.Println("🎨 Graphs generated: architecture_logic.mmd, architecture_data.mmd")
+		} else {
+			fmt.Println("🎨 Graphs generated: architecture_logic.mmd")
+		}
 	}
 
 	if cfg.Target != "" {

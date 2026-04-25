@@ -17,7 +17,7 @@ func PrintCLIReport(tSum, fSum []models.Summary) {
 	printLogicSummaries(w, fSum)
 }
 
-func ExportToMermaid(targetDirectory string, matches []models.Match) error {
+func ExportToMermaid(targetDirectory string, matches []models.Match, withData bool) error {
 
 	// 1. Set default directory if empty
 	if targetDirectory == "" {
@@ -36,7 +36,9 @@ func ExportToMermaid(targetDirectory string, matches []models.Match) error {
 
 	// Headers
 	logicSB.WriteString("graph LR\n    classDef function fill:#bbf,stroke:#333\n")
-	dataSB.WriteString("graph LR\n    classDef function fill:#bbf,stroke:#333\n    classDef table fill:#f9f,stroke:#333\n")
+	if withData {
+		dataSB.WriteString("graph LR\n    classDef function fill:#bbf,stroke:#333\n    classDef table fill:#f9f,stroke:#333\n")
+	}
 
 	drawnLogic := make(map[string]bool)
 	drawnData := make(map[string]bool)
@@ -50,11 +52,13 @@ func ExportToMermaid(targetDirectory string, matches []models.Match) error {
 				drawnLogic[edge] = true
 			}
 		case "table":
-			// Data Graph: Function -> Table
-			edge := fmt.Sprintf("    %s([%s]) --> %s[(%s)]:::table", m.FunctionName, m.FunctionName, m.Name, m.Name)
-			if !drawnData[edge] {
-				dataSB.WriteString(edge + "\n")
-				drawnData[edge] = true
+			if withData {
+				// Data Graph: Function -> Table
+				edge := fmt.Sprintf("    %s([%s]) --> %s[(%s)]:::table", m.FunctionName, m.FunctionName, m.Name, m.Name)
+				if !drawnData[edge] {
+					dataSB.WriteString(edge + "\n")
+					drawnData[edge] = true
+				}
 			}
 		}
 	}
@@ -65,7 +69,10 @@ func ExportToMermaid(targetDirectory string, matches []models.Match) error {
 		return err
 	}
 
-	dataFilePath := filepath.Join(targetDirectory, "architecture_data.mmd")
+	if withData {
+		dataFilePath := filepath.Join(targetDirectory, "architecture_data.mmd")
+		return os.WriteFile(dataFilePath, []byte(dataSB.String()), 0644)
+	}
 
-	return os.WriteFile(dataFilePath, []byte(dataSB.String()), 0644)
+	return nil
 }
