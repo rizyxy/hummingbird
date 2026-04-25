@@ -47,7 +47,7 @@ func main() {
 	}
 
 	// --- 3. Analyze & Report Phase ---
-	tSum, fSum := analyzer.GenerateSummaries(matches)
+	tSum, fSum := analyzer.GenerateSummaries(funcs, tables, matches)
 
 	if cfg.CLI {
 		report.PrintCLIReport(tSum, fSum)
