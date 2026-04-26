@@ -11,7 +11,14 @@ By scanning your source code and a provided list of target tables, Hummingbird h
 - **Blast Radius Calculation:** Calculates the recursive impact of modifying a specific table.
 - **Visual Architecture Graphs:** Generates Mermaid.js diagrams to visualize logic calls and data flow.
 - **Strategic Summaries:** Provides prioritized CLI reports detailing the frequency of table usage and logic dependencies.
-- **Zero Dependencies:** Pure Go implementation with no external runtime dependencies.
+- **Standalone Binary:** Pure Go implementation that compiles to a single executable without external runtime dependencies.
+
+## 🗄️ Supported Databases
+
+When using the dynamic DB integration feature (`--db-driver`), Hummingbird currently supports fetching tables directly from:
+
+- **PostgreSQL** (`postgres`)
+- **MySQL / MariaDB** (`mysql`)
 
 ## 📦 Installation
 
