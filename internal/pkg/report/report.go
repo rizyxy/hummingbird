@@ -9,6 +9,7 @@ import (
 	"text/tabwriter"
 )
 
+// PrintCLIReport formats and outputs the strategic table and logic summaries to standard output.
 func PrintCLIReport(tSum, fSum []models.Summary) {
 	w := tabwriter.NewWriter(os.Stdout, 1, 1, 3, ' ', 0)
 
@@ -17,14 +18,14 @@ func PrintCLIReport(tSum, fSum []models.Summary) {
 	printLogicSummaries(w, fSum)
 }
 
+// ExportToMermaid generates Mermaid.js diagram files visualizing the architecture's logic and data flows.
+// The generated files are written to the specified target directory.
 func ExportToMermaid(targetDirectory string, matches []models.Match, withData bool) error {
 
-	// 1. Set default directory if empty
 	if targetDirectory == "" {
-		targetDirectory = "diagrams" // or "." for current directory
+		targetDirectory = "diagrams"
 	}
 
-	// 2. Ensure the directory exists (creates it if it doesn't)
 	if err := os.MkdirAll(targetDirectory, 0755); err != nil {
 		return fmt.Errorf("failed to create directory: %w", err)
 	}

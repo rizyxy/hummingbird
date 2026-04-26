@@ -6,6 +6,7 @@ import (
 	"text/tabwriter"
 )
 
+// printTableSummaries renders a prioritized summary of database table usage, including reference counts and calculated risk metrics.
 func printTableSummaries(w *tabwriter.Writer, tSum []models.Summary) {
 	fmt.Println("\n📊 STRATEGIC TABLE SUMMARY")
 	fmt.Fprintln(w, "TABLE NAME\tREFS\tFUNCS\tFRICTION\tRISK")
@@ -17,6 +18,7 @@ func printTableSummaries(w *tabwriter.Writer, tSum []models.Summary) {
 	w.Flush()
 }
 
+// printLogicSummaries renders a prioritized summary of logic dependencies, highlighting highly-coupled functions and their risk scores.
 func printLogicSummaries(w *tabwriter.Writer, fSum []models.Summary) {
 	fmt.Println("\n🧠 LOGIC CALL SUMMARY")
 	fmt.Fprintln(w, "FUNCTION NAME\tREFS\tCALLERS\tFRICTION\tRISK")
@@ -30,7 +32,8 @@ func printLogicSummaries(w *tabwriter.Writer, fSum []models.Summary) {
 	w.Flush()
 }
 
-// Helper to centralize risk logic
+// getRiskStatus evaluates a numerical friction score and returns a formatted severity label.
+// Higher scores signify tighter coupling and greater potential impact during migration.
 func getRiskStatus(score int) string {
 	if score > 50 {
 		return "🔥 CRITICAL"

@@ -6,6 +6,7 @@ import (
 	"sort"
 )
 
+// PrintBlastRadius calculates and prints the blast radius for a target table, showing direct and indirect impacts.
 func PrintBlastRadius(target string, matches []models.Match) {
 	radius := CalculateBlastRadius(target, matches)
 	fmt.Printf("\n☢️  BLAST RADIUS: %s\n", target)
@@ -14,6 +15,7 @@ func PrintBlastRadius(target string, matches []models.Match) {
 	fmt.Printf("   Total Risk Score:    %d\n", radius.TotalRiskScore)
 }
 
+// CalculateBlastRadius recursively determines all functions that directly or indirectly reference a target table.
 func CalculateBlastRadius(tableName string, matches []models.Match) models.ImpactReport {
 	direct := make(map[string]bool)
 	indirect := make(map[string]bool)
@@ -49,6 +51,7 @@ func CalculateBlastRadius(tableName string, matches []models.Match) models.Impac
 	}
 }
 
+// GenerateSummaries aggregates match data to produce prioritized summaries of table usage and function dependencies.
 func GenerateSummaries(allFuncs []string, allTables []string, matches []models.Match) ([]models.Summary, []models.Summary) {
 	tableMap := make(map[string]map[string]bool)
 	funcMap := make(map[string]map[string]bool)
