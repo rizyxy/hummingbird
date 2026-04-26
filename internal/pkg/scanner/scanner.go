@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+// ScanFunctions traverses the codebase directory to discover all unique function definitions.
+// It recursively walks through the directory, skipping non-source files, and extracts function names.
 func ScanFunctions(root string) ([]string, error) {
 	funcMap := make(map[string]struct{})
 
@@ -43,6 +45,8 @@ func ScanFunctions(root string) ([]string, error) {
 	return funcs, err
 }
 
+// ScanFileContent analyzes a single file to identify references to database tables and other functions.
+// It maintains a scope of the current function being analyzed to correctly attribute matches.
 func ScanFileContent(path string, tables []string, functions []string) []models.Match {
 	contentBytes, err := os.ReadFile(path)
 	if err != nil {
@@ -88,6 +92,8 @@ func ScanFileContent(path string, tables []string, functions []string) []models.
 	return matches
 }
 
+// ScanTables reads a file containing a list of table names and returns them as a slice of strings.
+// It handles basic cleanup, removing quotes and common delimiters, and ignores comment lines.
 func ScanTables(filename string) ([]string, error) {
 	file, err := os.Open(filename)
 	if err != nil {
